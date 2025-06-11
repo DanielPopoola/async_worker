@@ -88,3 +88,44 @@ class DatabaseManager:
                 "UPDATE jobs SET status = 'failed', last_error = $1 WHERE id = $2",
                 error_message, job_id
             )
+
+    async def get_job_by_id(self, job_id: str) -> Optional[Job]:
+        """Get job by ID for status checking."""
+        async with await self._acquire_conn() as conn:
+            row = await conn.fetchrow(
+                "SELECT id, payload, status, attempt_count FROM jobs WHERE id = $1",
+                job_id
+            )
+
+            if row:
+                return Job(
+                    id=str(row['id']),
+                    payload=json.loads(row['payload']),
+                    status=row['status'],
+                    attempt_count=row['attempt_count']
+                )
+            return None
+        
+    async def find_duplicate_job(self, payload: dict) -> Optional[str]:
+        """Checks if a job with identical payload exists."""
+        async with await self._acquire_conn() as conn:
+            job_id = await conn.fetchval(
+                "SELECT id FROM jobs WHERE payload = $1 AND status IN ('queued', 'processing')",
+                json.dumps(payload, sort_keys=True)
+            )
+            return str(job_id) if job_id else None
+        
+    async def replace_duplicate_job(self, old_job_id: str, new_payload: dict) -> str:
+        """Replace an existing job with a new payload."""
+        async with await self._acquire_conn() as conn:
+            await conn.execute("""
+                UPDATE jobs
+                SET payload = $1,
+                    status = 'queued',
+                    attempt_count = 0,
+                    created_at = NOW(),
+                    worker_id = NULL,
+                    started_at = NULL
+                WHERE id = $2
+            """, json.dumps(new_payload), old_job_id)
+            return old_job_id
