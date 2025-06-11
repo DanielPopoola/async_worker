@@ -1,5 +1,6 @@
-"""
-CREATE TABLE jobs (
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+CREATE TABLE IF NOT EXISTS jobs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     payload JSONB NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'queued',
@@ -11,5 +12,4 @@ CREATE TABLE jobs (
     last_error TEXT
 );
 
-CREATE INDEX idx_jobs_status ON jobs(status, created_at);
-"""
+CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status, created_at);
