@@ -99,7 +99,6 @@ async_worker/
 │   ├── models.py            # Pydantic models for request/response
 │   ├── database.py          # Database connection and operations
 │   ├── worker.py            # Background job processor
-│   └── config.py            # Configuration settings
 ├── migrations/
 │   └── init.sql             # Database schema
 ├── tests/
@@ -144,18 +143,6 @@ async_worker/
 ### Health Check
 - **GET** `/health`
 - **Response**: `{"status": "healthy"}`
-
-## 🔧 Configuration
-
-Key configuration options in `app/config.py`:
-
-```python
-DATABASE_URL = "postgresql://user:pass@localhost/dbname"
-CONNECTION_POOL_MIN_SIZE = 2
-CONNECTION_POOL_MAX_SIZE = 5
-WORKER_POLL_INTERVAL = 1.0
-JOB_PROCESSING_TIMEOUT = 300
-```
 
 ## 🧪 Testing
 
