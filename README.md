@@ -1,6 +1,6 @@
 # Async PostgreSQL Worker with FastAPI
 
-A production-ready asynchronous job queue system built with FastAPI, PostgreSQL, and asyncio. This project demonstrates modern async Python patterns for building scalable background job processing systems.
+A low-level asynchronous job queue system built with FastAPI, PostgreSQL, and asyncio. This project demonstrates modern async Python patterns for basic background job processing systems.
 
 ## 🚀 Features
 
