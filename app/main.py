@@ -1,7 +1,9 @@
 import os
+import asyncio
 from fastapi import FastAPI, Depends, HTTPException
 from contextlib import asynccontextmanager
 from .database import DatabaseManager
+from .worker import SimpleWorker
 from .models import JobCreateRequest, JobCreateResponse, JobStatusResponse
 from dotenv import load_dotenv
 
@@ -15,16 +17,32 @@ dbname = os.getenv("DB_NAME", "testdb")
 
 
 db_manager: DatabaseManager | None = None
+worker = None
+worker_task = None
+
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global db_manager
+    global db_manager, worker, worker_task
+
+    # Initialize db
     db_manager = DatabaseManager(f"postgresql://{user}:{password}@{host}/{dbname}")
     await db_manager.initialize()
+
+    # Start worker
+    worker = SimpleWorker(db_manager)
+    worker_task = asyncio.create_task(worker.start())
+    
+    print("FastAPI app and worker started.")
     yield
 
+    # Shutdown
+    worker.stop()
+    await worker_task
     await db_manager.close()
+    print("FastAPI app and worker stopped")
+
 
 app = FastAPI(lifespan=lifespan)
 
